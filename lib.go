@@ -27,3 +27,12 @@ func ReadFile(path string) string {
 
 	return string(dat)
 }
+
+func ChunkString(s string, chunkSize int) []string {
+	var chunks []string
+	for i := 0; i < len(s); i += chunkSize {
+		end := min(i+chunkSize, len(s))
+		chunks = append(chunks, s[i:end])
+	}
+	return chunks
+}
