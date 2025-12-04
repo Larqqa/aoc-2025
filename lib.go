@@ -36,3 +36,44 @@ func ChunkString(s string, chunkSize int) []string {
 	}
 	return chunks
 }
+
+type Grid struct {
+	Width  int
+	Height int
+	Cells  []rune
+}
+
+type Coord struct {
+	X int
+	Y int
+}
+
+func GetIndexOfCoord(coord Coord, width int) int {
+	return coord.Y*width + coord.X
+}
+
+func GetCoordOfIndex(index int, width int) Coord {
+	return Coord{
+		X: index % width,
+		Y: index / width,
+	}
+}
+
+var AdjacencyMatrix = []Coord{
+	{0, -1}, {-1, 0}, {1, 0}, {0, 1},
+}
+
+var FullAdjacencyMatrix = []Coord{
+	{-1, -1}, {0, -1}, {1, -1},
+	{-1, 0}, {1, 0},
+	{-1, 1}, {0, 1}, {1, 1},
+}
+
+func Print2DGrid(grid Grid) {
+	for y := 0; y < grid.Height; y++ {
+		for x := range grid.Width {
+			print(string(grid.Cells[GetIndexOfCoord(Coord{X: x, Y: y}, grid.Width)]))
+		}
+		println()
+	}
+}
