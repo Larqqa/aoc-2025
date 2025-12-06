@@ -37,10 +37,10 @@ func ChunkString(s string, chunkSize int) []string {
 	return chunks
 }
 
-type Grid struct {
+type Grid[T any] struct {
 	Width  int
 	Height int
-	Cells  []rune
+	Cells  []T
 }
 
 type Coord struct {
@@ -69,10 +69,13 @@ var FullAdjacencyMatrix = []Coord{
 	{-1, 1}, {0, 1}, {1, 1},
 }
 
-func Print2DGrid(grid Grid) {
+func Print2DGrid[T any](grid Grid[T]) {
 	for y := 0; y < grid.Height; y++ {
 		for x := range grid.Width {
-			print(string(grid.Cells[GetIndexOfCoord(Coord{X: x, Y: y}, grid.Width)]))
+			print(grid.Cells[GetIndexOfCoord(Coord{X: x, Y: y}, grid.Width)])
+			if _, ok := any(grid.Cells[0]).(int); ok {
+				print(" ")
+			}
 		}
 		println()
 	}

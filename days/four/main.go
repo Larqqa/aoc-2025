@@ -16,7 +16,7 @@ func main() {
 	fmt.Println("Part Two:", p2)
 }
 
-func parse(data string) lib.Grid {
+func parse(data string) lib.Grid[rune] {
 	parsed := strings.Split(strings.ReplaceAll(data, "\r", ""), "\n")
 
 	width := len(parsed[0])
@@ -30,14 +30,14 @@ func parse(data string) lib.Grid {
 		}
 	}
 
-	return lib.Grid{
+	return lib.Grid[rune]{
 		Width:  width,
 		Height: height,
 		Cells:  grid,
 	}
 }
 
-func findMoveable(grid lib.Grid) []int {
+func findMoveable(grid lib.Grid[rune]) []int {
 	moveable := []int{}
 	for i, cell := range grid.Cells {
 		if cell != '@' {
