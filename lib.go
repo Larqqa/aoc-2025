@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,6 +29,7 @@ func ReadFile(path string) string {
 	return string(dat)
 }
 
+// Chunk a string into pieces by given chunk size
 func ChunkString(s string, chunkSize int) []string {
 	var chunks []string
 	for i := 0; i < len(s); i += chunkSize {
@@ -79,4 +81,17 @@ func Print2DGrid[T any](grid Grid[T]) {
 		}
 		println()
 	}
+}
+
+// Get a single number at a specific index from an integer
+// Returns -1 if the index is out of bounds
+func GetNumberAtIndex(val int, index int) int {
+	length := int(math.Log10(float64(val)))
+	if length < index || index < 0 {
+		return -1
+	}
+
+	mod := int(math.Pow(10, float64(length-index)))
+
+	return (val / mod) % 10
 }
