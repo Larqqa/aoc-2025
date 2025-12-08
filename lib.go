@@ -100,3 +100,16 @@ func GetNumberAtIndex(val int, index int) int {
 
 	return (val / mod) % 10
 }
+
+type Point struct {
+	X int
+	Y int
+	Z int
+}
+
+func (p Point) Distance(other Point) float64 {
+	dx := float64(p.X - other.X)
+	dy := float64(p.Y - other.Y)
+	dz := float64(p.Z - other.Z)
+	return math.Sqrt(dx*dx + dy*dy + dz*dz)
+}
