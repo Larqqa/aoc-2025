@@ -113,3 +113,53 @@ func (p Point) Distance(other Point) float64 {
 	dz := float64(p.Z - other.Z)
 	return math.Sqrt(dx*dx + dy*dy + dz*dz)
 }
+
+type UFDS[T comparable] struct {
+	Parent map[T]T
+	Rank   map[T]int
+}
+
+func (u *UFDS[T]) CountSets() int {
+	roots := make(map[T]bool)
+	for node := range u.Parent {
+		roots[u.Find(node)] = true
+	}
+	return len(roots)
+}
+
+func NewUFDS[T comparable]() *UFDS[T] {
+	return &UFDS[T]{
+		Parent: make(map[T]T),
+		Rank:   make(map[T]int),
+	}
+}
+
+func (u *UFDS[T]) Find(x T) T {
+	if _, exists := u.Parent[x]; !exists {
+		u.Parent[x] = x
+		u.Rank[x] = 1
+	}
+	if u.Parent[x] == x {
+		return x
+	}
+	u.Parent[x] = u.Find(u.Parent[x])
+	return u.Parent[x]
+}
+
+func (u *UFDS[T]) Union(x, y T) {
+	rootX := u.Find(x)
+	rootY := u.Find(y)
+
+	if rootX == rootY {
+		return
+	}
+
+	if u.Rank[rootX] < u.Rank[rootY] {
+		u.Parent[rootX] = rootY
+	} else if u.Rank[rootX] > u.Rank[rootY] {
+		u.Parent[rootY] = rootX
+	} else {
+		u.Parent[rootY] = u.Parent[rootX]
+		u.Rank[rootX]++
+	}
+}
