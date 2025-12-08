@@ -74,7 +74,12 @@ var FullAdjacencyMatrix = []Coord{
 func Print2DGrid[T any](grid Grid[T]) {
 	for y := 0; y < grid.Height; y++ {
 		for x := range grid.Width {
-			print(grid.Cells[GetIndexOfCoord(Coord{X: x, Y: y}, grid.Width)])
+			cell := grid.Cells[GetIndexOfCoord(Coord{X: x, Y: y}, grid.Width)]
+			if r, ok := any(cell).(rune); ok {
+				print(string(r))
+			} else {
+				print(cell)
+			}
 			if _, ok := any(grid.Cells[0]).(int); ok {
 				print(" ")
 			}
