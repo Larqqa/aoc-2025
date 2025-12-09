@@ -3,7 +3,6 @@ package main
 import (
 	lib "aoc/2025"
 	"fmt"
-	"math"
 	"strings"
 )
 
@@ -30,11 +29,9 @@ func parse(data string) []lib.Coord {
 func solvePartOne(data string) int {
 	coords := parse(data)
 	largest := 0
-	for _, coord := range coords {
-		for _, coord2 := range coords {
-			width := int(math.Abs(float64(coord.X-coord2.X))) + 1
-			height := int(math.Abs(float64(coord.Y-coord2.Y))) + 1
-			area := width * height
+	for i, coord := range coords {
+		for _, coord2 := range coords[i+1:] {
+			area := coord.GetArea(coord2)
 			if area > largest {
 				largest = area
 			}
@@ -45,5 +42,32 @@ func solvePartOne(data string) int {
 }
 
 func solvePartTwo(data string) int {
+	coords := parse(data)
+	maxX, maxY := 0, 0
+	for _, coord := range coords {
+		if coord.X > maxX {
+			maxX = coord.X
+		}
+		if coord.Y > maxY {
+			maxY = coord.Y
+		}
+	}
+
+	fmt.Println(maxX, maxY)
+
+	// grid := lib.Grid[rune]{
+	// 	Width:  maxX + 1,
+	// 	Height: maxY + 1,
+	// 	Cells:  make([]rune, (maxX+1)*(maxY+1)),
+	// }
+
+	// for i := range grid.Cells {
+	// 	grid.Cells[i] = '.'
+	// }
+
+	// for _, coord := range coords {
+	// 	grid.Cells[coord.GetIndex(grid.Width)] = '#'
+	// }
+
 	return 0
 }

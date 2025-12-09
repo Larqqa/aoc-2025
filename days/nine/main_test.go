@@ -23,8 +23,8 @@ func TestCorrect(t *testing.T) {
 	data := lib.ReadFile("inputs/daynine.txt")
 
 	p1 := solvePartOne(data)
-	if p1 != 24360 {
-		t.Errorf("Expected 24360, got %d", p1)
+	if p1 != 4781546175 {
+		t.Errorf("Expected 4781546175, got %d", p1)
 	}
 
 	p2 := solvePartTwo(data)

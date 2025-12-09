@@ -57,8 +57,18 @@ func CoordFromString(s string) Coord {
 	return Coord{X: x, Y: y}
 }
 
+func (c Coord) GetArea(c2 Coord) int {
+	width := int(math.Abs(float64(c.X-c2.X))) + 1
+	height := int(math.Abs(float64(c.Y-c2.Y))) + 1
+	return width * height
+}
+
 func GetIndexOfCoord(coord Coord, width int) int {
 	return coord.Y*width + coord.X
+}
+
+func (c Coord) GetIndex(width int) int {
+	return GetIndexOfCoord(c, width)
 }
 
 func GetCoordOfIndex(index int, width int) Coord {
@@ -67,6 +77,19 @@ func GetCoordOfIndex(index int, width int) Coord {
 		Y: index / width,
 	}
 }
+
+func (g Grid[T]) GetCoordOfIndex(index int) Coord {
+	return GetCoordOfIndex(index, g.Width)
+}
+
+type Direction int
+
+const (
+	Up Direction = iota
+	Down
+	Left
+	Right
+)
 
 var AdjacencyMatrix = []Coord{
 	{0, -1}, {-1, 0}, {1, 0}, {0, 1},
@@ -93,6 +116,37 @@ func Print2DGrid[T any](grid Grid[T]) {
 		}
 		println()
 	}
+}
+
+func (g Grid[T]) Print() {
+	Print2DGrid(g)
+}
+
+func Print2DGridToFile[T any](grid Grid[T], filename string) {
+	root := getRootDir()
+	osPath := filepath.Join(root, filename)
+	f, err := os.Create(osPath)
+	CheckError(err)
+	defer f.Close()
+
+	for y := 0; y < grid.Height; y++ {
+		for x := range grid.Width {
+			cell := grid.Cells[GetIndexOfCoord(Coord{X: x, Y: y}, grid.Width)]
+			if r, ok := any(cell).(rune); ok {
+				fmt.Fprint(f, string(r))
+			} else {
+				fmt.Fprint(f, cell)
+			}
+			if _, ok := any(grid.Cells[0]).(int); ok {
+				fmt.Fprint(f, " ")
+			}
+		}
+		fmt.Fprintln(f)
+	}
+}
+
+func (g Grid[T]) PrintToFile(filename string) {
+	Print2DGridToFile(g, filename)
 }
 
 // Get a single number at a specific index from an integer
