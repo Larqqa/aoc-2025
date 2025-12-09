@@ -3,6 +3,8 @@ package main
 import (
 	lib "aoc/2025"
 	"fmt"
+	"math"
+	"slices"
 	"strings"
 )
 
@@ -14,6 +16,8 @@ func main() {
 
 	p2 := solvePartTwo(data)
 	fmt.Println("Part Two:", p2)
+
+	// too low 123179664
 }
 
 func parse(data string) []lib.Coord {
@@ -43,7 +47,9 @@ func solvePartOne(data string) int {
 
 func solvePartTwo(data string) int {
 	coords := parse(data)
+
 	maxX, maxY := 0, 0
+	minX, minY := math.MaxInt, math.MaxInt
 	for _, coord := range coords {
 		if coord.X > maxX {
 			maxX = coord.X
@@ -51,23 +57,67 @@ func solvePartTwo(data string) int {
 		if coord.Y > maxY {
 			maxY = coord.Y
 		}
+		if coord.X < minX {
+			minX = coord.X
+		}
+		if coord.Y < minY {
+			minY = coord.Y
+		}
 	}
 
-	fmt.Println(maxX, maxY)
+	getNextInDirection := func(c lib.Coord, d lib.Direction) lib.Coord {
+		furthest := lib.Coord{}
+		for {
+			n := c.GetNextCoord(d)
+			if n.X < minX || n.X > maxX || n.Y < minY || n.Y > maxY {
+				break
+			}
+			if slices.Contains(coords, n) {
+				furthest = n
+			}
+			c = n
+		}
+		return furthest
+	}
 
-	// grid := lib.Grid[rune]{
-	// 	Width:  maxX + 1,
-	// 	Height: maxY + 1,
-	// 	Cells:  make([]rune, (maxX+1)*(maxY+1)),
-	// }
+	largest := 0
+	for i, coord := range coords {
+		fmt.Println(i)
+		width, height := 0, 0
 
-	// for i := range grid.Cells {
-	// 	grid.Cells[i] = '.'
-	// }
+		up := getNextInDirection(coord, lib.Up)
+		down := getNextInDirection(coord, lib.Down)
 
-	// for _, coord := range coords {
-	// 	grid.Cells[coord.GetIndex(grid.Width)] = '#'
-	// }
+		uDist := coord.ManhattanDistance(up)
+		dDist := coord.ManhattanDistance(down)
 
-	return 0
+		if up != (lib.Coord{}) && uDist > height {
+			height = uDist
+		}
+
+		if down != (lib.Coord{}) && dDist > height {
+			height = dDist
+		}
+
+		left := getNextInDirection(coord, lib.Left)
+		right := getNextInDirection(coord, lib.Right)
+
+		lDist := coord.ManhattanDistance(left)
+		rDist := coord.ManhattanDistance(right)
+
+		if left != (lib.Coord{}) && lDist > width {
+			width = lDist
+		}
+
+		if right != (lib.Coord{}) && rDist > width {
+			width = rDist
+		}
+
+		area := width * height
+		if area > largest {
+			largest = area
+		}
+	}
+
+	return largest
 }

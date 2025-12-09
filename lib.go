@@ -63,6 +63,16 @@ func (c Coord) GetArea(c2 Coord) int {
 	return width * height
 }
 
+func (c Coord) Distance(c2 Coord) float64 {
+	dx := float64(c.X - c2.X)
+	dy := float64(c.Y - c2.Y)
+	return math.Sqrt(dx*dx + dy*dy)
+}
+
+func (c Coord) ManhattanDistance(c2 Coord) int {
+	return int(math.Abs(float64(c.X-c2.X))) + int(math.Abs(float64(c.Y-c2.Y)))
+}
+
 func GetIndexOfCoord(coord Coord, width int) int {
 	return coord.Y*width + coord.X
 }
@@ -93,6 +103,20 @@ const (
 
 var AdjacencyMatrix = []Coord{
 	{0, -1}, {-1, 0}, {1, 0}, {0, 1},
+}
+
+func (c Coord) GetNextCoord(d Direction) Coord {
+	switch d {
+	case Up:
+		return Coord{X: c.X, Y: c.Y - 1}
+	case Down:
+		return Coord{X: c.X, Y: c.Y + 1}
+	case Left:
+		return Coord{X: c.X - 1, Y: c.Y}
+	case Right:
+		return Coord{X: c.X + 1, Y: c.Y}
+	}
+	return c
 }
 
 var FullAdjacencyMatrix = []Coord{

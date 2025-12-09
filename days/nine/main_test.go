@@ -14,8 +14,8 @@ func TestDay(t *testing.T) {
 	}
 
 	p2 := solvePartTwo(testData)
-	if p2 != 25272 {
-		t.Errorf("Expected 25272, got %d", p2)
+	if p2 != 24 {
+		t.Errorf("Expected 24, got %d", p2)
 	}
 }
 
