@@ -3,8 +3,7 @@ package main
 import (
 	lib "aoc/2025"
 	"fmt"
-	"math"
-	"slices"
+	"sort"
 	"strings"
 )
 
@@ -48,74 +47,108 @@ func solvePartOne(data string) int {
 func solvePartTwo(data string) int {
 	coords := parse(data)
 
-	maxX, maxY := 0, 0
-	minX, minY := math.MaxInt, math.MaxInt
+	// cached points by the x and y values
+	// x contains sorted y from min to max
+	// y contains sorted x from min to max
+	cacheX := make(map[int][]lib.Coord)
+	cacheY := make(map[int][]lib.Coord)
+
 	for _, coord := range coords {
-		if coord.X > maxX {
-			maxX = coord.X
-		}
-		if coord.Y > maxY {
-			maxY = coord.Y
-		}
-		if coord.X < minX {
-			minX = coord.X
-		}
-		if coord.Y < minY {
-			minY = coord.Y
-		}
+		cacheX[coord.X] = append(cacheX[coord.X], coord)
+		cacheY[coord.Y] = append(cacheY[coord.Y], coord)
 	}
 
-	getNextInDirection := func(c lib.Coord, d lib.Direction) lib.Coord {
-		furthest := lib.Coord{}
-		for {
-			n := c.GetNextCoord(d)
-			if n.X < minX || n.X > maxX || n.Y < minY || n.Y > maxY {
-				break
-			}
-			if slices.Contains(coords, n) {
-				furthest = n
-			}
-			c = n
-		}
-		return furthest
+	for _, list := range cacheX {
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].Y < list[j].Y
+		})
 	}
+
+	for _, list := range cacheY {
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].X < list[j].X
+		})
+	}
+
+	keysX := make([]int, 0, len(cacheX))
+	for k := range cacheX {
+		keysX = append(keysX, k)
+	}
+	sort.Ints(keysX)
+
+	keysY := make([]int, 0, len(cacheY))
+	for k := range cacheY {
+		keysY = append(keysY, k)
+	}
+	sort.Ints(keysY)
 
 	largest := 0
-	for i, coord := range coords {
-		fmt.Println(i)
-		width, height := 0, 0
+	for _, coord := range coords {
+		for _, x := range cacheY[coord.Y] {
+			if x.X == coord.X {
+				continue
+			}
 
-		up := getNextInDirection(coord, lib.Up)
-		down := getNextInDirection(coord, lib.Down)
+			for _, y := range cacheX[coord.X] {
+				if y.Y == coord.Y {
+					continue
+				}
 
-		uDist := coord.ManhattanDistance(up)
-		dDist := coord.ManhattanDistance(down)
+				// both target coordinates always exists in the x and y cache,
+				// but mignt not exist in the shape
+				target := lib.Coord{
+					X: x.X,
+					Y: y.Y,
+				}
 
-		if up != (lib.Coord{}) && uDist > height {
-			height = uDist
-		}
+				fmt.Println(coord, target)
 
-		if down != (lib.Coord{}) && dDist > height {
-			height = dDist
-		}
+				// Find the Y values for the target X
+				value := cacheX[target.X]
+				idx := sort.SearchInts(keysY, coord.Y)
 
-		left := getNextInDirection(coord, lib.Left)
-		right := getNextInDirection(coord, lib.Right)
+				// if target Y is larger than coord Y
+				// find next largest edge from coord Y
 
-		lDist := coord.ManhattanDistance(left)
-		rDist := coord.ManhattanDistance(right)
+				if target.Y > coord.Y {
+					for {
+						idx++
+						if idx >= len(keysY) {
+							break
+						}
+						key := keysY[idx]
+						edgeList := cacheY[key]
 
-		if left != (lib.Coord{}) && lDist > width {
-			width = lDist
-		}
+						min := edgeList[0].X
+						max := edgeList[len(edgeList)-1].X
 
-		if right != (lib.Coord{}) && rDist > width {
-			width = rDist
-		}
+						if target.X >= min && target.X <= max {
+							fmt.Println("InsideShape")
+						}
 
-		area := width * height
-		if area > largest {
-			largest = area
+						fmt.Println(coord, target, edgeList)
+					}
+				}
+
+				// if target Y is smaller than edge Y
+				// the shape is not valid
+
+				// do the otherway if target Y smaller than coord Y
+
+				// if target is outside of the shape
+				if value[0].Y > target.Y || value[len(value)-1].Y < target.Y {
+					fmt.Println("OutsideShape")
+					continue
+				}
+
+				area := coord.GetArea(target)
+
+				// fmt.Println(area, coord, target)
+
+				if area > largest {
+					largest = area
+				}
+			}
 		}
 	}
 
