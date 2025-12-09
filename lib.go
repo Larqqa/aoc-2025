@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -48,6 +49,12 @@ type Grid[T any] struct {
 type Coord struct {
 	X int
 	Y int
+}
+
+func CoordFromString(s string) Coord {
+	var x, y int
+	fmt.Sscanf(s, "%d,%d", &x, &y)
+	return Coord{X: x, Y: y}
 }
 
 func GetIndexOfCoord(coord Coord, width int) int {
