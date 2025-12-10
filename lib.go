@@ -92,6 +92,25 @@ func (g Grid[T]) GetCoordOfIndex(index int) Coord {
 	return GetCoordOfIndex(index, g.Width)
 }
 
+type Edge struct {
+	A, B Coord
+}
+
+func (e1 Edge) Intersects(e2 Edge) bool {
+	denom := (e1.B.X-e1.A.X)*(e2.B.Y-e2.A.Y) - (e1.B.Y-e1.A.Y)*(e2.B.X-e2.A.X)
+	if denom == 0 {
+		return false // Parallel lines
+	}
+
+	numA := (e1.B.Y-e1.A.Y)*(e2.A.X-e1.A.X) - (e1.B.X-e1.A.X)*(e2.A.Y-e1.A.Y)
+	numB := (e2.B.Y-e2.A.Y)*(e2.A.X-e1.A.X) - (e2.B.X-e2.A.X)*(e2.A.Y-e1.A.Y)
+
+	uA := float64(numA) / float64(denom)
+	uB := float64(numB) / float64(denom)
+
+	return uA > 0 && uA < 1 && uB > 0 && uB < 1
+}
+
 type Direction int
 
 const (

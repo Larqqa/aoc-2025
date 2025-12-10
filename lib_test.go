@@ -77,3 +77,17 @@ func TestNumberAtIndex(t *testing.T) {
 		}
 	}
 }
+
+func TestEdgesIntersect(t *testing.T) {
+	e1 := Edge{A: Coord{X: 11, Y: 1}, B: Coord{X: 2, Y: 3}}
+
+	e2 := Edge{A: Coord{X: 7, Y: 3}, B: Coord{X: 7, Y: 1}}
+	if !e1.Intersects(e2) {
+		t.Errorf("Expected edges to intersect")
+	}
+
+	e3 := Edge{A: Coord{X: 0, Y: 1}, B: Coord{X: 4, Y: 1}}
+	if e1.Intersects(e3) {
+		t.Errorf("Expected edges not to intersect")
+	}
+}
