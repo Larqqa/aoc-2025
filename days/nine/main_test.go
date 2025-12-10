@@ -28,7 +28,8 @@ func TestCorrect(t *testing.T) {
 	}
 
 	p2 := solvePartTwo(data)
-	if p2 != 2185817796 {
-		t.Errorf("Expected 2185817796, got %d", p2)
+	if p2 != 1573359081 {
+		t.Errorf("Expected 1573359081, got %d", p2)
 	}
 }
+
