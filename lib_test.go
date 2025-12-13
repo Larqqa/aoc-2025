@@ -91,3 +91,68 @@ func TestEdgesIntersect(t *testing.T) {
 		t.Errorf("Expected edges not to intersect")
 	}
 }
+
+func TestRotating(t *testing.T) {
+	g := NewGrid[rune](3, 3)
+	for i, c := range "#####.##." {
+		g.Set(GetCoordOfIndex(i, g.Width), c)
+	}
+
+	if string(g.Cells) != "#####.##." {
+		t.Errorf("not matching original")
+	}
+
+	g.Rotate(Right)
+
+	if string(g.Cells) != "######..#" {
+		t.Errorf("not matching rotated right")
+	}
+
+	g.Rotate(Left)
+	if string(g.Cells) != "#####.##." {
+		t.Errorf("not matching rotated back left")
+	}
+
+	g.Rotate(Left)
+	if string(g.Cells) != "#..######" {
+		t.Errorf("not matching rotated left")
+	}
+
+	g.Rotate(Right)
+	g.Rotate(Right)
+	g.Rotate(Right)
+	if string(g.Cells) != ".##.#####" {
+		t.Errorf("not matching 180")
+	}
+}
+
+func TestFlipping(t *testing.T) {
+	g := NewGrid[rune](3, 3)
+	for i, c := range "#####.##." {
+		g.Set(GetCoordOfIndex(i, g.Width), c)
+	}
+
+	if string(g.Cells) != "#####.##." {
+		t.Errorf("not matching original")
+	}
+
+	g.Flip(Left)
+	if string(g.Cells) != "###.##.##" {
+		t.Errorf("not matching flipped horizontal")
+	}
+
+	g.Flip(Right)
+	if string(g.Cells) != "#####.##." {
+		t.Errorf("not matching flipped back horizontal")
+	}
+
+	g.Flip(Up)
+	if string(g.Cells) != "##.##.###" {
+		t.Errorf("not matching flipped vertical")
+	}
+
+	g.Flip(Down)
+	if string(g.Cells) != "#####.##." {
+		t.Errorf("not matching flipped back vertical")
+	}
+}

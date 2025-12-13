@@ -46,9 +46,73 @@ type Grid[T any] struct {
 	Cells  []T
 }
 
+func NewGrid[T any](height int, width int) Grid[T] {
+	return Grid[T]{
+		Width:  width,
+		Height: height,
+		Cells:  make([]T, height*width),
+	}
+}
+
+func (g Grid[T]) Copy() Grid[T] {
+	newGrid := NewGrid[T](g.Height, g.Width)
+	copy(newGrid.Cells, g.Cells)
+	return newGrid
+}
+
+func (g *Grid[T]) Set(c Coord, value T) {
+	g.Cells[c.GetIndex(g.Width)] = value
+}
+
+func (g Grid[T]) Get(c Coord) T {
+	return g.Cells[c.GetIndex(g.Width)]
+}
+
+func (g *Grid[T]) Rotate(direction Direction) {
+	newGrid := NewGrid[T](g.Width, g.Height)
+	for y := 0; y < g.Height; y++ {
+		for x := 0; x < g.Width; x++ {
+			var newX, newY int
+			switch direction {
+			case Right:
+				newX = g.Height - 1 - y
+				newY = x
+			case Left:
+				newX = y
+				newY = g.Width - 1 - x
+			}
+			newGrid.Set(NewCoord(newX, newY), g.Cells[GetIndexOfCoord(NewCoord(x, y), g.Width)])
+		}
+	}
+	*g = newGrid
+}
+
+func (g *Grid[T]) Flip(direction Direction) {
+	newGrid := NewGrid[T](g.Height, g.Width)
+	for y := 0; y < g.Height; y++ {
+		for x := 0; x < g.Width; x++ {
+			var newX, newY int
+			switch direction {
+			case Left, Right:
+				newX = g.Width - 1 - x
+				newY = y
+			case Up, Down:
+				newX = x
+				newY = g.Height - 1 - y
+			}
+			newGrid.Set(NewCoord(newX, newY), g.Cells[GetIndexOfCoord(NewCoord(x, y), g.Width)])
+		}
+	}
+	*g = newGrid
+}
+
 type Coord struct {
 	X int
 	Y int
+}
+
+func NewCoord(x, y int) Coord {
+	return Coord{X: x, Y: y}
 }
 
 func CoordFromString(s string) Coord {
