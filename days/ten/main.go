@@ -3,6 +3,8 @@ package main
 import (
 	lib "aoc/2025"
 	"fmt"
+	"maps"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -71,47 +73,54 @@ func parse(data string) []Machine {
 	return machines
 }
 
-func findFewestPresses(state []bool, machine Machine) int {
-	type State struct {
-		lights  []bool
-		presses int
+// Find all button combos of unique buttons that yield the target state
+func findAllButtonCombos(target []bool, machine Machine) [][][]int {
+	allPaths := [][][]int{}
+
+	stateKey := func(state []bool, usedButtons map[int]bool) string {
+		return fmt.Sprintf("%v-%v", state, usedButtons)
 	}
 
-	queue := []State{{lights: state, presses: 0}}
-	visited := make(map[string]bool)
-
-	stateKey := func(s []bool) string {
-		return fmt.Sprint(s)
-	}
-
-	visited[stateKey(state)] = true
-
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-
-		if slices.Equal(current.lights, machine.LightDiagram) {
-			return current.presses
+	seenStates := make(map[string]bool)
+	var dfs func(state []bool, path [][]int, usedButtons map[int]bool)
+	dfs = func(state []bool, path [][]int, usedButtons map[int]bool) {
+		key := stateKey(state, usedButtons)
+		if seenStates[key] {
+			return
 		}
 
-		for _, button := range machine.ButtonWiringSchema {
-			newState := make([]bool, len(current.lights))
-			copy(newState, current.lights)
+		seenStates[key] = true
 
-			// Flip the lights
+		if slices.Equal(state, target) {
+			pathCopy := make([][]int, len(path))
+			copy(pathCopy, path)
+			allPaths = append(allPaths, pathCopy)
+			return
+		}
+
+		for idx, button := range machine.ButtonWiringSchema {
+			if usedButtons[idx] {
+				continue
+			}
+
+			newState := make([]bool, len(state))
+			copy(newState, state)
+
 			for _, i := range button {
 				newState[i] = !newState[i]
 			}
 
-			key := stateKey(newState)
-			if !visited[key] {
-				visited[key] = true
-				queue = append(queue, State{lights: newState, presses: current.presses + 1})
-			}
+			newUsed := make(map[int]bool)
+			maps.Copy(newUsed, usedButtons)
+			newUsed[idx] = true
+
+			dfs(newState, append(path, button), newUsed)
 		}
 	}
 
-	return -1 // If no solution found
+	dfs(make([]bool, len(target)), [][]int{}, make(map[int]bool))
+
+	return allPaths
 }
 
 func solvePartOne(data string) int {
@@ -119,99 +128,102 @@ func solvePartOne(data string) int {
 
 	sum := 0
 	for _, m := range machines {
-		sum += findFewestPresses(make([]bool, len(m.LightDiagram)), m)
+		allButtons := findAllButtonCombos(m.LightDiagram, m)
+		slices.SortFunc(allButtons, func(a, b [][]int) int {
+			return len(a) - len(b)
+		})
+		sum += len(allButtons[0])
 	}
 
 	return sum
 }
 
-func copyMachine(machine Machine) Machine {
-	initialMachine := Machine{
-		LightDiagram:        append([]bool(nil), machine.LightDiagram...),
-		ButtonWiringSchema:  make([][]int, len(machine.ButtonWiringSchema)),
-		JoltageRequirements: append([]int(nil), machine.JoltageRequirements...),
+func convertJoltageRegToParity(state []int) []bool {
+	parity := make([]bool, len(state))
+	for i, val := range state {
+		parity[i] = val%2 == 1
 	}
-	for i := range machine.ButtonWiringSchema {
-		initialMachine.ButtonWiringSchema[i] = append([]int(nil), machine.ButtonWiringSchema[i]...)
-	}
-	return initialMachine
+	return parity
 }
 
-func findFewestPresses2(machine Machine) int {
-	type State struct {
-		machine Machine
-		presses int
-	}
+func solveMachine(machine Machine) int {
+	cache := make(map[string]int)
 
-	initialMachine := copyMachine(machine)
-	queue := []State{{machine: initialMachine, presses: 0}}
-	visited := make(map[string]bool)
-
-	stateKey := func(s []int) string {
-		return fmt.Sprint(s)
-	}
-
-	visited[stateKey(initialMachine.JoltageRequirements)] = true
-
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-
-		solved := true
-		for _, j := range current.machine.JoltageRequirements {
-			if j != 0 {
-				solved = false
+	var solve func(target []int) int
+	solve = func(target []int) int {
+		allZero := 0
+		for _, val := range target {
+			if val < 0 {
+				return math.MaxInt32
 			}
+			allZero += val
+		}
+		if allZero == 0 {
+			return 0
 		}
 
-		if solved {
-			return current.presses
+		stateKey := fmt.Sprint(target)
+		if val, exists := cache[stateKey]; exists {
+			return val
 		}
 
-		for i := len(current.machine.ButtonWiringSchema) - 1; i >= 0; i-- {
-			button := current.machine.ButtonWiringSchema[i]
-			shouldRemove := false
-			for _, idx := range button {
-				val := current.machine.JoltageRequirements[idx]
-				if val-1 < 0 {
-					shouldRemove = true
+		parity := convertJoltageRegToParity(target)
+		buttons := findAllButtonCombos(parity, machine)
+
+		if len(buttons) == 0 {
+			cache[stateKey] = math.MaxInt32
+			return math.MaxInt32
+		}
+
+		minCost := math.MaxInt32
+		for _, btnCombo := range buttons {
+			newT := make([]int, len(target))
+			copy(newT, target)
+
+			for _, button := range btnCombo {
+				for _, i := range button {
+					newT[i]--
+				}
+			}
+
+			valid := true
+			for _, val := range newT {
+				if val < 0 || val%2 != 0 {
+					valid = false
 					break
 				}
 			}
-			if shouldRemove {
-				current.machine.ButtonWiringSchema = append(current.machine.ButtonWiringSchema[:i], current.machine.ButtonWiringSchema[i+1:]...)
+			if !valid {
+				continue
 			}
+
+			for i := range newT {
+				newT[i] /= 2
+			}
+
+			recursiveCost := solve(newT)
+			if recursiveCost >= math.MaxInt32 {
+				continue
+			}
+
+			minCost = min(minCost, len(btnCombo)+2*recursiveCost)
 		}
 
-		for i := len(current.machine.ButtonWiringSchema) - 1; i >= 0; i-- {
-			newMachine := copyMachine(current.machine)
-
-			for _, i := range newMachine.ButtonWiringSchema[i] {
-				newMachine.JoltageRequirements[i]--
-			}
-
-			key := stateKey(newMachine.JoltageRequirements)
-			if !visited[key] {
-				visited[key] = true
-				queue = append(queue, State{machine: newMachine, presses: current.presses + 1})
-			}
-		}
+		cache[stateKey] = minCost
+		return minCost
 	}
 
-	return -1 // If no solution found
+	return solve(machine.JoltageRequirements)
 }
 
 func solvePartTwo(data string) int {
 	machines := parse(data)
 
 	sum := 0
-
-	for _, m := range machines {
-		sum += findFewestPresses2(m)
+	for i, m := range machines {
+		fmt.Println("Machine", i+1)
+		sum += solveMachine(m)
 	}
-
-	// m := machines[189]
-	// sum += findFewestPresses2(m)
 
 	return sum
 }

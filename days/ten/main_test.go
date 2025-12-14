@@ -19,6 +19,15 @@ func TestDay(t *testing.T) {
 	}
 }
 
+func TestDayP2(t *testing.T) {
+	testData := lib.ReadFile("inputs/dayten_test.txt")
+
+	p2 := solvePartTwo(testData)
+	if p2 != 33 {
+		t.Errorf("Expected 33, got %d", p2)
+	}
+}
+
 func TestCorrect(t *testing.T) {
 	data := lib.ReadFile("inputs/dayten.txt")
 
@@ -28,7 +37,7 @@ func TestCorrect(t *testing.T) {
 	}
 
 	p2 := solvePartTwo(data)
-	if p2 != 0 {
-		t.Errorf("Expected 0, got %d", p2)
+	if p2 != 20626 {
+		t.Errorf("Expected 20626, got %d", p2)
 	}
 }
